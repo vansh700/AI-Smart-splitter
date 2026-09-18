@@ -16,6 +16,7 @@ import ReceiptUploader from './components/ReceiptUploader.jsx'
 import ReceiptEditor from './components/ReceiptEditor.jsx'
 import AssignStep from './components/AssignStep.jsx'
 import SummaryStep from './components/SummaryStep.jsx'
+import HistoryPanel from './components/HistoryPanel.jsx'
 
 // ─── App step constants ───────────────────────────────────────────
 export const STEPS = {
@@ -47,15 +48,25 @@ const initialReceiptState = {
 export default function App() {
   const [currentStep, setCurrentStep] = useState(STEPS.LANDING)
   const [receipt, setReceipt]         = useState(initialReceiptState)
-  const [people, setPeople]           = useState([])  // [{ id, name, color }]
-  const [assignments, setAssignments] = useState({})  // { itemId: [personId, ...] }
+  const [people, setPeople]           = useState([])   // [{ id, name, color }]
+  const [assignments, setAssignments] = useState({})   // { itemId: [personId, ...] }
+  const [showHistory, setShowHistory] = useState(false)
 
   const goTo = (step) => setCurrentStep(step)
+
   const reset = () => {
     setCurrentStep(STEPS.LANDING)
     setReceipt(initialReceiptState)
     setPeople([])
     setAssignments({})
+  }
+
+  // Load a past split from HistoryPanel back into the Summary view
+  const loadFromHistory = ({ receipt: r, people: p, assignments: a }) => {
+    setReceipt(r)
+    setPeople(p)
+    setAssignments(a)
+    setCurrentStep(STEPS.SUMMARY)
   }
 
   // Shared context passed down to child pages
@@ -74,8 +85,16 @@ export default function App() {
       <div className="orb orb-2" aria-hidden="true" />
       <div className="orb orb-3" aria-hidden="true" />
 
+      {/* History slide-in panel */}
+      {showHistory && (
+        <HistoryPanel
+          onClose={() => setShowHistory(false)}
+          onLoadSplit={loadFromHistory}
+        />
+      )}
+
       {/* App header */}
-      <Header onReset={reset} />
+      <Header onReset={reset} onShowHistory={() => setShowHistory(true)} />
 
       {/* Step progress bar — shown on all non-landing steps */}
       {currentStep !== STEPS.LANDING && (
@@ -89,8 +108,8 @@ export default function App() {
         {currentStep === STEPS.LANDING && (
           <LandingHero ctx={ctx} />
         )}
+
         {currentStep === STEPS.REVIEW && receipt.items.length === 0 && (
-          /* No receipt yet — show uploader */
           <div className="slide-up">
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '1.375rem', color: '#e2e8f0', marginBottom: '0.375rem' }}>
@@ -103,11 +122,11 @@ export default function App() {
             <ReceiptUploader
               onExtracted={(receiptData) => {
                 setReceipt(receiptData)
-                // stay on REVIEW — next sub-step shows the editor
               }}
             />
           </div>
         )}
+
         {currentStep === STEPS.REVIEW && receipt.items.length > 0 && (
           <ReceiptEditor
             receipt={receipt}
@@ -116,6 +135,7 @@ export default function App() {
             onReupload={() => setReceipt(initialReceiptState)}
           />
         )}
+
         {currentStep === STEPS.ASSIGN && (
           <AssignStep
             receipt={receipt}
@@ -127,6 +147,7 @@ export default function App() {
             onBack={() => goTo(STEPS.REVIEW)}
           />
         )}
+
         {currentStep === STEPS.SUMMARY && (
           <SummaryStep
             receipt={receipt}
@@ -141,7 +162,7 @@ export default function App() {
       {/* Footer */}
       <footer className="content-wrapper pb-6 text-center">
         <p className="text-xs text-slate-600">
-          Smart Bill Splitter · All calculations done client-side · No data stored
+          Smart Bill Splitter · All calculations done client-side · History stored locally in your browser
         </p>
       </footer>
     </div>

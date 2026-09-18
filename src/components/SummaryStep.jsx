@@ -10,7 +10,7 @@
  *  - Per-person collapsible item breakdown
  *  - Grand total verification badge
  */
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { toPng } from 'html-to-image'
 import {
   CheckCircle2, AlertTriangle, Copy, Check, RefreshCw,
@@ -18,6 +18,7 @@ import {
   DollarSign, Link2, X,
 } from 'lucide-react'
 import { calculateSplit, formatCurrency } from '../utils/splitCalculator.js'
+import { saveSplit } from '../services/historyDb.js'
 
 // ─── Payment platform config ──────────────────────────────────────
 
@@ -326,6 +327,16 @@ export default function SummaryStep({ receipt, people, assignments, onReset, onB
     calculateSplit({ items: receipt.items, people, assignments, tax: receipt.tax, tip: receipt.tip, subtotal: receipt.subtotal })
 
   const peopleById = Object.fromEntries(people.map((p) => [p.id, p]))
+
+  // ── Auto-save to history DB (once, on first render) ───────────
+  useEffect(() => {
+    if (receipt.items.length === 0 || people.length === 0) return
+    saveSplit({ receipt, people, assignments, breakdown }).catch(() => {
+      // Silently ignore — history is non-critical
+    })
+    // Only run on mount — we intentionally omit deps to save once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Copy plain text summary ───────────────────────────────────
   const buildTextSummary = () => {

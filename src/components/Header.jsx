@@ -1,13 +1,13 @@
 /**
  * Header.jsx
- * Persistent top navigation bar with logo, app name, API key button, and reset button.
+ * Persistent top navigation bar with logo, app name, API key button, history, and reset button.
  */
 import { useState } from 'react'
-import { ReceiptText, RefreshCw, KeyRound, Sparkles } from 'lucide-react'
+import { ReceiptText, RefreshCw, KeyRound, History } from 'lucide-react'
 import { hasApiKey } from '../services/aiReceiptParser.js'
 import ApiKeyModal from './ApiKeyModal.jsx'
 
-export default function Header({ onReset }) {
+export default function Header({ onReset, onShowHistory }) {
   const [showKeyModal, setShowKeyModal] = useState(false)
   const isConfigured = hasApiKey()
 
@@ -83,7 +83,7 @@ export default function Header({ onReset }) {
               id="header-api-key-btn"
               className="btn btn-ghost"
               onClick={() => setShowKeyModal(true)}
-              title="Configure Gemini API Key"
+              title="Configure AI API Key"
               style={{
                 padding: '0.45rem 0.8rem',
                 fontSize: '0.78rem',
@@ -94,6 +94,17 @@ export default function Header({ onReset }) {
             >
               <KeyRound size={13} color={isConfigured ? '#22d3a8' : '#a78bfa'} />
               <span>{isConfigured ? 'API Key Set ✓' : 'Set API Key'}</span>
+            </button>
+
+            <button
+              id="header-history-btn"
+              className="btn btn-ghost"
+              onClick={onShowHistory}
+              title="View split history"
+              style={{ padding: '0.45rem 0.8rem', fontSize: '0.78rem', gap: '0.35rem' }}
+            >
+              <History size={13} color="#a78bfa" />
+              History
             </button>
 
             <button

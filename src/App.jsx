@@ -14,6 +14,8 @@ import StepProgressBar from './components/StepProgressBar.jsx'
 import LandingHero from './components/LandingHero.jsx'
 import ReceiptUploader from './components/ReceiptUploader.jsx'
 import ReceiptEditor from './components/ReceiptEditor.jsx'
+import AssignStep from './components/AssignStep.jsx'
+import SummaryStep from './components/SummaryStep.jsx'
 
 // ─── App step constants ───────────────────────────────────────────
 export const STEPS = {
@@ -115,16 +117,24 @@ export default function App() {
           />
         )}
         {currentStep === STEPS.ASSIGN && (
-          <div className="glass-card p-8 slide-up text-center">
-            <p className="text-slate-400">Step 3 — Assign Items to People</p>
-            <button className="btn btn-primary mt-6" onClick={() => goTo(STEPS.REVIEW)}>← Back</button>
-          </div>
+          <AssignStep
+            receipt={receipt}
+            people={people}
+            setPeople={setPeople}
+            assignments={assignments}
+            setAssignments={setAssignments}
+            onContinue={() => goTo(STEPS.SUMMARY)}
+            onBack={() => goTo(STEPS.REVIEW)}
+          />
         )}
         {currentStep === STEPS.SUMMARY && (
-          <div className="glass-card p-8 slide-up text-center">
-            <p className="text-slate-400">Step 4 — Split Summary</p>
-            <button className="btn btn-primary mt-6" onClick={() => goTo(STEPS.ASSIGN)}>← Back</button>
-          </div>
+          <SummaryStep
+            receipt={receipt}
+            people={people}
+            assignments={assignments}
+            onReset={reset}
+            onBack={() => goTo(STEPS.ASSIGN)}
+          />
         )}
       </main>
 

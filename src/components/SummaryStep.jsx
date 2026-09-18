@@ -308,7 +308,7 @@ function PersonBreakdownCard({ person, result }) {
 
 // ─── Main component ───────────────────────────────────────────────
 
-export default function SummaryStep({ receipt, people, assignments, onReset, onBack }) {
+export default function SummaryStep({ receipt, people, assignments, onReset, onBack, showToast }) {
   const cardRef      = useRef(null)
   const [copiedAll,  setCopiedAll]  = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -331,10 +331,10 @@ export default function SummaryStep({ receipt, people, assignments, onReset, onB
   // ── Auto-save to history DB (once, on first render) ───────────
   useEffect(() => {
     if (receipt.items.length === 0 || people.length === 0) return
-    saveSplit({ receipt, people, assignments, breakdown }).catch(() => {
-      // Silently ignore — history is non-critical
-    })
-    // Only run on mount — we intentionally omit deps to save once
+    saveSplit({ receipt, people, assignments, breakdown })
+      .then(() => showToast?.('Split saved to history 🖳️', 'success', 2500))
+      .catch(() => {})
+    // Only run on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

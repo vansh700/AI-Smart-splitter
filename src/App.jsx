@@ -6,9 +6,11 @@
  *  Step 2 → Review / Edit Items
  *  Step 3 → Assign Items to People
  *  Step 4 → View Split Summary
+ *
+ * Phase 8: scroll-to-top on step change, toast notifications wired in.
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './components/Header.jsx'
 import StepProgressBar from './components/StepProgressBar.jsx'
 import LandingHero from './components/LandingHero.jsx'
@@ -17,13 +19,14 @@ import ReceiptEditor from './components/ReceiptEditor.jsx'
 import AssignStep from './components/AssignStep.jsx'
 import SummaryStep from './components/SummaryStep.jsx'
 import HistoryPanel from './components/HistoryPanel.jsx'
+import { useToast, ToastContainer } from './components/Toast.jsx'
 
 // ─── App step constants ───────────────────────────────────────────
 export const STEPS = {
-  LANDING:    'landing',    // Welcome / upload
-  REVIEW:     'review',     // Review extracted items
-  ASSIGN:     'assign',     // Assign items to people
-  SUMMARY:    'summary',    // Final split summary
+  LANDING:    'landing',
+  REVIEW:     'review',
+  ASSIGN:     'assign',
+  SUMMARY:    'summary',
 }
 
 const STEP_LABELS = [
@@ -37,7 +40,7 @@ const STEP_LABELS = [
 const initialReceiptState = {
   vendor: '',
   date: '',
-  items: [],       // [{ id, name, price }]
+  items: [],
   subtotal: 0,
   tax: 0,
   tip: 0,
@@ -48,9 +51,15 @@ const initialReceiptState = {
 export default function App() {
   const [currentStep, setCurrentStep] = useState(STEPS.LANDING)
   const [receipt, setReceipt]         = useState(initialReceiptState)
-  const [people, setPeople]           = useState([])   // [{ id, name, color }]
-  const [assignments, setAssignments] = useState({})   // { itemId: [personId, ...] }
+  const [people, setPeople]           = useState([])
+  const [assignments, setAssignments] = useState({})
   const [showHistory, setShowHistory] = useState(false)
+  const { toasts, showToast }         = useToast()
+
+  // ── Scroll to top on every step change ───────────────────────
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentStep])
 
   const goTo = (step) => setCurrentStep(step)
 
@@ -67,6 +76,7 @@ export default function App() {
     setPeople(p)
     setAssignments(a)
     setCurrentStep(STEPS.SUMMARY)
+    showToast('Split loaded from history', 'info')
   }
 
   // Shared context passed down to child pages
@@ -74,7 +84,7 @@ export default function App() {
     receipt, setReceipt,
     people, setPeople,
     assignments, setAssignments,
-    goTo, reset,
+    goTo, reset, showToast,
   }
 
   return (
@@ -84,6 +94,9 @@ export default function App() {
       <div className="orb orb-1" aria-hidden="true" />
       <div className="orb orb-2" aria-hidden="true" />
       <div className="orb orb-3" aria-hidden="true" />
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} />
 
       {/* History slide-in panel */}
       {showHistory && (
@@ -122,6 +135,7 @@ export default function App() {
             <ReceiptUploader
               onExtracted={(receiptData) => {
                 setReceipt(receiptData)
+                showToast('Receipt extracted successfully!', 'success')
               }}
             />
           </div>
@@ -155,6 +169,7 @@ export default function App() {
             assignments={assignments}
             onReset={reset}
             onBack={() => goTo(STEPS.ASSIGN)}
+            showToast={showToast}
           />
         )}
       </main>

@@ -1,18 +1,18 @@
 # Smart Bill Splitter Agent
 
 **Goal**: An AI-powered receipt splitting tool that extracts line items from receipt photos, allows interactive item assignments (including multi-person sharing), proportionally distributes tax and tips with 100% mathematical accuracy, and generates shareable summaries.  
-**Tech stack**: React 18, Vite 8, Tailwind CSS v4, Lucide React, html-to-image, AI Vision (Claude / Gemini Vision APIs).
+**Tech stack**: React 18, Vite 8, Tailwind CSS v4, Lucide React, html-to-image, Vitest, AI Vision (Claude / Gemini Vision APIs).
 
 ---
 
 ## Status
-**Current step**: ✅ Step 1 Complete → Ready for Step 2 | **Last updated**: 2026-09-19
+**Current step**: ✅ Step 2 Complete → Ready for Step 3 | **Last updated**: 2026-09-19
 
 ---
 
 ## Roadmap
 1. ✅ **Step 1: Scaffolding & Setup** — Vite + React + Tailwind CSS, Lucide icons, html-to-image, design system, baseline shell.
-2. **Step 2: Math & Split Engine** — Proportional tax/tip distribution logic, penny rounding reconciliation, unit test suite.
+2. ✅ **Step 2: Math & Split Engine** — Proportional tax/tip distribution, fractional item sharing, penny reconciliation. 32/32 Vitest tests pass.
 3. **Step 3: Receipt Upload & Vision Extraction** — Drag-and-drop / camera receipt upload, sample presets, AI vision extraction API service.
 4. **Step 4: Editable Item Grid & Confidence UI** — Line item editor, price adjustments, subtotal/tax/tip override, low-confidence warnings.
 5. **Step 5: People & Item Assignment UI** — Interactive participant chips, multi-select assignment per item, "Split Evenly" mode.
@@ -23,8 +23,9 @@
 ---
 
 ## Step Log
-- **Step 0 — 2026-09-19** — Read PRD and rules. Initialized Git repo, connected remote (`https://github.com/vansh700/AI-Smart-splitter.git`), created `.gitignore` and `PROJECT.md`, committed baseline on branch `main`.
-- **Step 1 — 2026-09-19** — Scaffolded Vite 8 + React 18. Installed Tailwind CSS v4 (`@tailwindcss/vite`), Lucide React, `html-to-image`. Built full design system in `src/index.css` (CSS tokens, glassmorphism, animations, buttons, badges, step bar). Created `App.jsx` with 4-step router state, `Header.jsx`, `StepProgressBar.jsx`, `LandingHero.jsx`. Build passes (0 errors). Dev server runs cleanly on `http://localhost:5173`.
+- **Step 0 — 2026-09-19** — Read PRD and rules. Initialized Git repo, connected remote, created `.gitignore` and `PROJECT.md`, committed baseline on `main`.
+- **Step 1 — 2026-09-19** — Scaffolded Vite 8 + React 18. Installed Tailwind CSS v4, Lucide React, `html-to-image`. Built full design system. Created `App.jsx` 4-step router, `Header.jsx`, `StepProgressBar.jsx`, `LandingHero.jsx`. Build + dev server verified.
+- **Step 2 — 2026-09-19** — Built core math engine `splitCalculator.js`. Implements PRD §3.3: proportional tax/tip, fractional item sharing, penny reconciliation on the largest share holder. Added `buildEvenAssignments` and `subtotalDiscrepancy` utilities. Installed Vitest. **32/32 tests pass** across 10 scenarios (even split, itemized, shared items, solo, floating-point drift, unassigned detection, zero tax/tip, PRD exact spec values).
 
 ---
 
@@ -40,6 +41,8 @@
 - `src/components/Header.jsx` — Sticky glassmorphic navbar with logo and reset button.
 - `src/components/StepProgressBar.jsx` — Animated 4-step progress indicator.
 - `src/components/LandingHero.jsx` — Welcome screen with hero, CTA buttons, and feature cards.
+- `src/utils/splitCalculator.js` — **Core math engine**: `calculateSplit`, `buildEvenAssignments`, `subtotalDiscrepancy`, `roundCents`, `formatCurrency`.
+- `src/utils/splitCalculator.test.js` — 32 Vitest unit tests across 10 scenarios.
 - `public/favicon.svg` — Gradient SVG app icon.
 
 ---
@@ -49,17 +52,10 @@
 
 ---
 
-## Backlog / Future Ideas
-- Multi-currency support (USD, EUR, GBP, INR, etc.)
-- Save frequent groups (roommates, recurring dinner group)
-- Direct deep links for payment apps (Venmo, UPI, PayPal)
-- Multi-receipt support in a single session
-
----
-
 ## How to Run
 ```bash
 npm install
 npm run dev      # http://localhost:5173
+npm test         # Run 32 unit tests (Vitest)
 npm run build    # Production bundle → dist/
 ```

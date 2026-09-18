@@ -6,20 +6,18 @@
  * Features:
  *  - Drag-and-drop zone (JPG, PNG, PDF)
  *  - Click-to-browse file picker
- *  - 3 sample receipt quick-picks (works without API key)
- *  - Calls AI Vision API to extract structured data
+ *  - 3 sample receipt quick-picks
+ *  - Calls secure backend API (/api/parse-receipt) to extract structured data
  *  - Shows loading spinner during extraction
  *  - Shows error with retry on failure
- *  - If no API key is configured in .env, shows a clear info banner
- *    (API key is NEVER entered or stored in the frontend)
  */
 import { useState, useRef, useCallback } from 'react'
 import {
   Upload, ImagePlus, AlertCircle,
-  ChevronRight, ScanLine, FileImage, Info,
+  ChevronRight, ScanLine, FileImage,
 } from 'lucide-react'
 import { SAMPLE_RECEIPTS } from '../data/sampleReceipts.js'
-import { parseReceipt, hasApiKey, loadApiKey } from '../services/aiReceiptParser.js'
+import { parseReceipt } from '../services/aiReceiptParser.js'
 
 const ACCEPTED = '.jpg,.jpeg,.png,.pdf,.webp'
 
@@ -30,17 +28,16 @@ export default function ReceiptUploader({ onExtracted }) {
   const [error,      setError]      = useState('')
 
   const fileInputRef = useRef(null)
-  const keyConfigured = hasApiKey()
 
   // ── File handling ──────────────────────────────────────────────
 
-  const processFile = useCallback(async (file, apiKey) => {
+  const processFile = useCallback(async (file) => {
     setError('')
     setLoading(true)
     setLoadingMsg('Reading receipt image…')
     try {
       setLoadingMsg('Analyzing with AI Vision…')
-      const receipt = await parseReceipt(file, apiKey)
+      const receipt = await parseReceipt(file)
       setLoadingMsg('Structuring data…')
       onExtracted(receipt)
     } catch (err) {
@@ -62,12 +59,7 @@ export default function ReceiptUploader({ onExtracted }) {
       setError('File is too large. Please use an image under 10MB.')
       return
     }
-    const key = loadApiKey()
-    if (!key) {
-      setError('No AI API key found. Add VITE_CLAUDE_API_KEY or VITE_GEMINI_API_KEY to your .env file and restart the dev server.')
-      return
-    }
-    processFile(file, key)
+    processFile(file)
   }, [processFile])
 
   // ── Drag & Drop ────────────────────────────────────────────────
@@ -91,32 +83,6 @@ export default function ReceiptUploader({ onExtracted }) {
 
   return (
     <div className="fade-in">
-
-      {/* No API key banner */}
-      {!keyConfigured && (
-        <div
-          className="slide-up"
-          style={{
-            display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
-            background: 'rgba(56,189,248,0.07)',
-            border: '1px solid rgba(56,189,248,0.2)',
-            borderRadius: '0.875rem',
-            padding: '1rem 1.125rem',
-            marginBottom: '1.25rem',
-          }}
-        >
-          <Info size={16} color="#38bdf8" style={{ flexShrink: 0, marginTop: 2 }} />
-          <div>
-            <p style={{ fontWeight: 600, fontSize: '0.875rem', color: '#7dd3fc', marginBottom: '0.25rem' }}>
-              AI extraction not configured
-            </p>
-            <p style={{ fontSize: '0.8rem', color: '#4b5563', lineHeight: 1.6 }}>
-              Add <code style={{ background: 'rgba(255,255,255,0.07)', padding: '0 0.3rem', borderRadius: '0.25rem', fontSize: '0.78rem', color: '#a78bfa' }}>VITE_CLAUDE_API_KEY</code> or <code style={{ background: 'rgba(255,255,255,0.07)', padding: '0 0.3rem', borderRadius: '0.25rem', fontSize: '0.78rem', color: '#a78bfa' }}>VITE_GEMINI_API_KEY</code> to your <code style={{ background: 'rgba(255,255,255,0.07)', padding: '0 0.3rem', borderRadius: '0.25rem', fontSize: '0.78rem', color: '#a78bfa' }}>.env</code> file and restart the dev server. Until then, use the sample receipts below.
-            </p>
-          </div>
-        </div>
-      )}
-
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
 
         {/* ── Upload zone ─────────────────────────── */}

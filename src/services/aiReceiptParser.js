@@ -159,11 +159,29 @@ export function normalizeReceiptData(raw) {
   }
 }
 
-// ─── API key session storage ──────────────────────────────────────
+// ─── API key storage ──────────────────────────────────────────────
 
 const STORAGE_KEY = 'sbs_gemini_api_key'
 
-export function saveApiKey(key)  { sessionStorage.setItem(STORAGE_KEY, key) }
-export function loadApiKey()     { return sessionStorage.getItem(STORAGE_KEY) || '' }
-export function clearApiKey()    { sessionStorage.removeItem(STORAGE_KEY) }
-export function hasApiKey()      { return Boolean(loadApiKey()) }
+export function saveApiKey(key) {
+  sessionStorage.setItem(STORAGE_KEY, key)
+  localStorage.setItem(STORAGE_KEY, key)
+}
+
+export function loadApiKey() {
+  return (
+    sessionStorage.getItem(STORAGE_KEY) ||
+    localStorage.getItem(STORAGE_KEY) ||
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) ||
+    ''
+  )
+}
+
+export function clearApiKey() {
+  sessionStorage.removeItem(STORAGE_KEY)
+  localStorage.removeItem(STORAGE_KEY)
+}
+
+export function hasApiKey() {
+  return Boolean(loadApiKey())
+}

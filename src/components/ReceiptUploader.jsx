@@ -17,7 +17,7 @@ import {
   ChevronRight, ScanLine, FileImage
 } from 'lucide-react'
 import { SAMPLE_RECEIPTS } from '../data/sampleReceipts.js'
-import { parseReceiptWithGemini, hasApiKey, loadApiKey } from '../services/aiReceiptParser.js'
+import { parseReceipt, hasApiKey, loadApiKey } from '../services/aiReceiptParser.js'
 import ApiKeyModal from './ApiKeyModal.jsx'
 
 const ACCEPTED = '.jpg,.jpeg,.png,.pdf,.webp'
@@ -40,8 +40,8 @@ export default function ReceiptUploader({ onExtracted }) {
     setLoadingMsg('Reading receipt image…')
 
     try {
-      setLoadingMsg('Sending to Gemini Vision AI…')
-      const receipt = await parseReceiptWithGemini(file, apiKey)
+      setLoadingMsg('Analyzing with AI Vision…')
+      const receipt = await parseReceipt(file, apiKey)
       setLoadingMsg('Structuring data…')
       onExtracted(receipt)
     } catch (err) {

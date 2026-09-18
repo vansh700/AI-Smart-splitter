@@ -1,13 +1,11 @@
 /**
  * aiReceiptParser.js
  * ──────────────────
- * AI Vision service that sends a receipt image to the Gemini API
- * and returns structured receipt data.
+ * AI Vision service that sends a receipt image to either:
+ *   1. Anthropic Claude API (claude-3-5-sonnet-20241022) — per PRD §5.1
+ *   2. Google Gemini Vision API (gemini-2.0-flash)
  *
  * Single-call design (per PRD §5.2) — one API request, no pipelines.
- *
- * Supported providers:
- *   - Google Gemini Vision (gemini-2.0-flash, gemini-1.5-flash)
  *
  * Returns a receipt object matching the PRD §3.1 schema:
  * {
@@ -44,7 +42,7 @@ Rules:
 - Include every line item you can read
 - If a field is unclear, make your best guess and lower confidence accordingly`
 
-// ─── Gemini Vision call ───────────────────────────────────────────
+// ─── Base64 helper ────────────────────────────────────────────────
 
 /**
  * Convert a File/Blob to base64 string.
@@ -59,6 +57,8 @@ async function fileToBase64(file) {
     reader.readAsDataURL(file)
   })
 }
+
+// ─── Gemini Vision call ───────────────────────────────────────────
 
 /**
  * Call Gemini Vision API to parse a receipt image.
@@ -111,18 +111,104 @@ export async function parseReceiptWithGemini(imageFile, apiKey) {
 
   if (!text) throw new Error('No content returned from Gemini API')
 
-  // Parse and validate
   let parsed
   try {
     parsed = JSON.parse(text)
   } catch {
-    // Try to extract JSON from text if surrounded by other content
     const match = text.match(/\{[\s\S]*\}/)
     if (!match) throw new Error('Could not parse JSON response from Gemini')
     parsed = JSON.parse(match[0])
   }
 
   return normalizeReceiptData(parsed)
+}
+
+// ─── Claude Vision call ───────────────────────────────────────────
+
+/**
+ * Call Anthropic Claude API (Vision) to parse a receipt image.
+ *
+ * @param {File|Blob} imageFile  The receipt image file
+ * @param {string}    apiKey     Anthropic API key (sk-ant-...)
+ * @returns {Promise<Object>}    Parsed receipt object
+ */
+export async function parseReceiptWithClaude(imageFile, apiKey) {
+  const base64Data = await fileToBase64(imageFile)
+  const mimeType   = imageFile.type || 'image/jpeg'
+
+  const endpoint = 'https://api.anthropic.com/v1/messages'
+
+  const body = {
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 1500,
+    temperature: 0.1,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mimeType,
+              data: base64Data,
+            },
+          },
+          {
+            type: 'text',
+            text: EXTRACTION_PROMPT,
+          },
+        ],
+      },
+    ],
+  }
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(
+      err?.error?.message || `Claude API error: ${response.status} ${response.statusText}`
+    )
+  }
+
+  const data = await response.json()
+  const text = data?.content?.[0]?.text
+
+  if (!text) throw new Error('No content returned from Claude API')
+
+  let parsed
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    const match = text.match(/\{[\s\S]*\}/)
+    if (!match) throw new Error('Could not parse JSON response from Claude')
+    parsed = JSON.parse(match[0])
+  }
+
+  return normalizeReceiptData(parsed)
+}
+
+// ─── Universal Parser Router ──────────────────────────────────────
+
+/**
+ * Automatically routes the request to Claude or Gemini depending on the key format.
+ */
+export async function parseReceipt(imageFile, apiKey) {
+  const key = apiKey.trim()
+  if (key.startsWith('sk-ant-')) {
+    return parseReceiptWithClaude(imageFile, key)
+  }
+  return parseReceiptWithGemini(imageFile, key)
 }
 
 // ─── Normalize & validate ─────────────────────────────────────────
@@ -161,7 +247,7 @@ export function normalizeReceiptData(raw) {
 
 // ─── API key storage ──────────────────────────────────────────────
 
-const STORAGE_KEY = 'sbs_gemini_api_key'
+const STORAGE_KEY = 'sbs_ai_api_key'
 
 export function saveApiKey(key) {
   sessionStorage.setItem(STORAGE_KEY, key)
@@ -173,6 +259,7 @@ export function loadApiKey() {
     sessionStorage.getItem(STORAGE_KEY) ||
     localStorage.getItem(STORAGE_KEY) ||
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) ||
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_CLAUDE_API_KEY) ||
     ''
   )
 }

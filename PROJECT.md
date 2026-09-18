@@ -6,12 +6,12 @@
 ---
 
 ## Status
-**Current step**: Step 0 (Roadmap & Implementation Plan Proposal) | **Last updated**: 2026-09-19
+**Current step**: Step 0 (Git Repository Connected) | **Last updated**: 2026-09-19
 
 ---
 
 ## Roadmap
-1. **Step 1: Scaffolding & Setup** — Initialize Git repo, Vite + React + Tailwind CSS project, basic layout structure.
+1. **Step 1: Scaffolding & Setup** — Initialize Vite + React + Tailwind CSS project, Lucide icons, baseline structure.
 2. **Step 2: Math & Split Engine** — Proportional tax/tip distribution logic, penny rounding reconciliation, automated test suite.
 3. **Step 3: Receipt Upload & Vision Extraction** — Drag-and-drop / camera receipt upload, sample presets, AI vision extraction API service.
 4. **Step 4: Editable Item Grid & Confidence UI** — Line item editor, price adjustments, subtotal/tax/tip override, low-confidence warnings.
@@ -23,7 +23,7 @@
 ---
 
 ## Step Log
-- **Step 0 — 2026-09-19** — Read and synthesized PRD (`PRD_Bill_Splitter.md`) and project rules (`AI_Agent_Project_Rules.pdf`). Created `PROJECT.md` living documentation and proposed detailed 8-step implementation plan.
+- **Step 0 — 2026-09-19** — Read PRD (`PRD_Bill_Splitter.md`) and rules (`AI_Agent_Project_Rules.pdf`). Initialized Git repository, connected remote `origin` (`https://github.com/vansh700/AI-Smart-splitter.git`), created `.gitignore`, established living documentation `PROJECT.md`, and committed baseline on branch `main`.
 
 ---
 

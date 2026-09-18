@@ -1,18 +1,18 @@
 # Smart Bill Splitter Agent
 
 **Goal**: An AI-powered receipt splitting tool that extracts line items from receipt photos, allows interactive item assignments (including multi-person sharing), proportionally distributes tax and tips with 100% mathematical accuracy, and generates shareable summaries.  
-**Tech stack**: React 18, Vite, Tailwind CSS, Lucide React, Canvas / html-to-image, AI Vision (Claude / Gemini Vision APIs).
+**Tech stack**: React 18, Vite 8, Tailwind CSS v4, Lucide React, html-to-image, AI Vision (Claude / Gemini Vision APIs).
 
 ---
 
 ## Status
-**Current step**: Step 0 (Git Repository Connected) | **Last updated**: 2026-09-19
+**Current step**: ✅ Step 1 Complete → Ready for Step 2 | **Last updated**: 2026-09-19
 
 ---
 
 ## Roadmap
-1. **Step 1: Scaffolding & Setup** — Initialize Vite + React + Tailwind CSS project, Lucide icons, baseline structure.
-2. **Step 2: Math & Split Engine** — Proportional tax/tip distribution logic, penny rounding reconciliation, automated test suite.
+1. ✅ **Step 1: Scaffolding & Setup** — Vite + React + Tailwind CSS, Lucide icons, html-to-image, design system, baseline shell.
+2. **Step 2: Math & Split Engine** — Proportional tax/tip distribution logic, penny rounding reconciliation, unit test suite.
 3. **Step 3: Receipt Upload & Vision Extraction** — Drag-and-drop / camera receipt upload, sample presets, AI vision extraction API service.
 4. **Step 4: Editable Item Grid & Confidence UI** — Line item editor, price adjustments, subtotal/tax/tip override, low-confidence warnings.
 5. **Step 5: People & Item Assignment UI** — Interactive participant chips, multi-select assignment per item, "Split Evenly" mode.
@@ -23,7 +23,8 @@
 ---
 
 ## Step Log
-- **Step 0 — 2026-09-19** — Read PRD (`PRD_Bill_Splitter.md`) and rules (`AI_Agent_Project_Rules.pdf`). Initialized Git repository, connected remote `origin` (`https://github.com/vansh700/AI-Smart-splitter.git`), created `.gitignore`, established living documentation `PROJECT.md`, and committed baseline on branch `main`.
+- **Step 0 — 2026-09-19** — Read PRD and rules. Initialized Git repo, connected remote (`https://github.com/vansh700/AI-Smart-splitter.git`), created `.gitignore` and `PROJECT.md`, committed baseline on branch `main`.
+- **Step 1 — 2026-09-19** — Scaffolded Vite 8 + React 18. Installed Tailwind CSS v4 (`@tailwindcss/vite`), Lucide React, `html-to-image`. Built full design system in `src/index.css` (CSS tokens, glassmorphism, animations, buttons, badges, step bar). Created `App.jsx` with 4-step router state, `Header.jsx`, `StepProgressBar.jsx`, `LandingHero.jsx`. Build passes (0 errors). Dev server runs cleanly on `http://localhost:5173`.
 
 ---
 
@@ -31,11 +32,20 @@
 - `PRD_Bill_Splitter.md` — Product Requirements Document.
 - `AI_Agent_Project_Rules.pdf` — AI agent collaboration and operating rules.
 - `PROJECT.md` — Living project tracking document (single source of truth).
+- `index.html` — Root HTML with SEO meta, OG tags, and title.
+- `vite.config.js` — Vite config with React and Tailwind CSS v4 plugins.
+- `src/main.jsx` — React 18 entry point.
+- `src/index.css` — Complete design system (tokens, glassmorphism, animations, utilities).
+- `src/App.jsx` — Top-level step router (LANDING → REVIEW → ASSIGN → SUMMARY).
+- `src/components/Header.jsx` — Sticky glassmorphic navbar with logo and reset button.
+- `src/components/StepProgressBar.jsx` — Animated 4-step progress indicator.
+- `src/components/LandingHero.jsx` — Welcome screen with hero, CTA buttons, and feature cards.
+- `public/favicon.svg` — Gradient SVG app icon.
 
 ---
 
 ## Open Issues
-- None at present.
+- None.
 
 ---
 
@@ -48,8 +58,8 @@
 ---
 
 ## How to Run
-*(Setup commands will be configured upon Step 1 completion)*
 ```bash
 npm install
-npm run dev
+npm run dev      # http://localhost:5173
+npm run build    # Production bundle → dist/
 ```

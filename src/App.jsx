@@ -12,6 +12,7 @@ import { useState } from 'react'
 import Header from './components/Header.jsx'
 import StepProgressBar from './components/StepProgressBar.jsx'
 import LandingHero from './components/LandingHero.jsx'
+import ReceiptUploader from './components/ReceiptUploader.jsx'
 
 // ─── App step constants ───────────────────────────────────────────
 export const STEPS = {
@@ -85,11 +86,36 @@ export default function App() {
         {currentStep === STEPS.LANDING && (
           <LandingHero ctx={ctx} />
         )}
-        {currentStep === STEPS.REVIEW && (
-          <div className="glass-card p-8 slide-up text-center">
-            <p className="text-slate-400">Step 2 — Review & Edit Items</p>
-            <p className="text-xs text-slate-600 mt-2">(Coming in Step 4 of build plan)</p>
-            <button className="btn btn-primary mt-6" onClick={() => goTo(STEPS.LANDING)}>← Back</button>
+        {currentStep === STEPS.REVIEW && receipt.items.length === 0 && (
+          /* No receipt yet — show uploader */
+          <div className="slide-up">
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '1.375rem', color: '#e2e8f0', marginBottom: '0.375rem' }}>
+                Upload your receipt
+              </h2>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                Take a photo or upload an image — our AI will read every item instantly.
+              </p>
+            </div>
+            <ReceiptUploader
+              onExtracted={(receiptData) => {
+                setReceipt(receiptData)
+                // stay on REVIEW — next sub-step shows the editor
+              }}
+            />
+          </div>
+        )}
+        {currentStep === STEPS.REVIEW && receipt.items.length > 0 && (
+          <div className="glass-card slide-up" style={{ padding: '2rem', textAlign: 'center' }}>
+            <p style={{ color: '#a78bfa', fontWeight: 600, fontSize: '1rem' }}>✅ Receipt extracted!</p>
+            <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '0.5rem 0 1.5rem' }}>
+              {receipt.vendor} · {receipt.items.length} items · ${receipt.total.toFixed(2)}
+            </p>
+            <p style={{ color: '#4b5563', fontSize: '0.8125rem', marginBottom: '1rem' }}>(Item editor coming in Step 4)</p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button className="btn btn-ghost" onClick={() => setReceipt({ vendor:'',date:'',items:[],subtotal:0,tax:0,tip:0,total:0,confidence:1 })}>← Re-upload</button>
+              <button className="btn btn-primary" onClick={() => goTo(STEPS.ASSIGN)}>Continue →</button>
+            </div>
           </div>
         )}
         {currentStep === STEPS.ASSIGN && (

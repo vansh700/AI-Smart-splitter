@@ -6,7 +6,7 @@
 ---
 
 ## Status
-**Current step**: ✅ Step 3 Complete → Ready for Step 4 | **Last updated**: 2026-09-19
+**Current step**: ✅ Step 7 Complete → Ready for Step 8 | **Last updated**: 2026-09-19
 
 ---
 
@@ -17,7 +17,7 @@
 4. **Step 4: Editable Item Grid & Confidence UI** — Line item editor, price adjustments, subtotal/tax/tip override, low-confidence warnings.
 5. **Step 5: People & Item Assignment UI** — Interactive participant chips, multi-select assignment per item, "Split Evenly" mode.
 6. **Step 6: Live Split Calculation & Validation** — Live tally per person, checksTotal vs receiptTotal match indicator, per-person item breakdown.
-7. **Step 7: Shareable Summary & Card Export** — Visual receipt summary card, payment handle inputs (Venmo/UPI/Zelle), Copy text summary, and PNG image export.
+7. ✅ **Step 7: Shareable Summary & Card Export** — Visual summary card (PNG download via html-to-image), payment handle inputs (Venmo/Cash App/PayPal with direct payment links), Copy text summary, Web Share API, per-person itemized breakdown.
 8. **Step 8: UI Polish, Dark Mode & E2E Validation** — Glassmorphic styling, animations, responsive design, and end-to-end verification.
 
 ---
@@ -26,7 +26,10 @@
 - **Step 0 — 2026-09-19** — Read PRD and rules. Initialized Git repo, connected remote, created `.gitignore` and `PROJECT.md`, committed baseline on `main`.
 - **Step 1 — 2026-09-19** — Scaffolded Vite 8 + React 18. Installed Tailwind CSS v4, Lucide React, `html-to-image`. Built full design system. Created `App.jsx` 4-step router, `Header.jsx`, `StepProgressBar.jsx`, `LandingHero.jsx`. Build + dev server verified.
 - **Step 2 — 2026-09-19** — Built core math engine `splitCalculator.js`. Proportional tax/tip, fractional item sharing, penny reconciliation. **32/32 Vitest tests pass** across 10 scenarios.
-- **Step 3 — 2026-09-19** — Built `ReceiptUploader.jsx` (drag-and-drop, file picker, loading state with scan animation, error handling). Created `aiReceiptParser.js` (Gemini Vision API, single call, base64 encoding, JSON normalization, sessionStorage API key). Created `ApiKeyModal.jsx` (key entry with show/hide, get-key link, privacy note). Created 3 `sampleReceipts.js` (Pizza Dinner, Team Lunch, Grocery Run) — works fully offline. Wired into `App.jsx`. Build 0 errors, 32/32 tests pass.
+- **Step 3 — 2026-09-19** — Built `ReceiptUploader.jsx` (drag-and-drop, file picker, loading state with scan animation, error handling). Created `aiReceiptParser.js` (Gemini Vision API, single call, base64 encoding, JSON normalization, sessionStorage API key). Created `ApiKeyModal.jsx`. Created 3 `sampleReceipts.js` (Pizza Dinner, Team Lunch, Grocery Run). Wired into `App.jsx`. Build 0 errors, 32/32 tests pass.
+- **Step 4 — 2026-09-19** — Built `ReceiptEditor.jsx` (editable item grid, confidence banner, discrepancy indicator, add/delete items, editable tax/tip/subtotal). 32/32 tests pass.
+- **Step 5/6 — 2026-09-19** — Built `AssignStep.jsx` (people management, color avatars, multi-person item sharing chips, Split Evenly shortcut, live unassigned counter). Built `SummaryStep.jsx` (per-person totals, itemized breakdown, grand total verification). Wired into `App.jsx`.
+- **Step 7 — 2026-09-19** — Upgraded `SummaryStep.jsx` with visual summary card, PNG export (html-to-image), payment handles (Venmo/Cash App/PayPal deep links), Web Share API, copy text summary, itemized breakdown cards.
 
 ---
 

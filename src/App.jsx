@@ -13,6 +13,7 @@ import Header from './components/Header.jsx'
 import StepProgressBar from './components/StepProgressBar.jsx'
 import LandingHero from './components/LandingHero.jsx'
 import ReceiptUploader from './components/ReceiptUploader.jsx'
+import ReceiptEditor from './components/ReceiptEditor.jsx'
 
 // ─── App step constants ───────────────────────────────────────────
 export const STEPS = {
@@ -106,17 +107,12 @@ export default function App() {
           </div>
         )}
         {currentStep === STEPS.REVIEW && receipt.items.length > 0 && (
-          <div className="glass-card slide-up" style={{ padding: '2rem', textAlign: 'center' }}>
-            <p style={{ color: '#a78bfa', fontWeight: 600, fontSize: '1rem' }}>✅ Receipt extracted!</p>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '0.5rem 0 1.5rem' }}>
-              {receipt.vendor} · {receipt.items.length} items · ${receipt.total.toFixed(2)}
-            </p>
-            <p style={{ color: '#4b5563', fontSize: '0.8125rem', marginBottom: '1rem' }}>(Item editor coming in Step 4)</p>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-              <button className="btn btn-ghost" onClick={() => setReceipt({ vendor:'',date:'',items:[],subtotal:0,tax:0,tip:0,total:0,confidence:1 })}>← Re-upload</button>
-              <button className="btn btn-primary" onClick={() => goTo(STEPS.ASSIGN)}>Continue →</button>
-            </div>
-          </div>
+          <ReceiptEditor
+            receipt={receipt}
+            setReceipt={setReceipt}
+            onContinue={() => goTo(STEPS.ASSIGN)}
+            onReupload={() => setReceipt(initialReceiptState)}
+          />
         )}
         {currentStep === STEPS.ASSIGN && (
           <div className="glass-card p-8 slide-up text-center">

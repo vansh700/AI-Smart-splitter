@@ -1,124 +1,84 @@
 /**
  * Header.jsx
- * Persistent top navigation bar with logo, app name, API key button, history, and reset button.
+ * Persistent top navigation bar with logo, app name, history, and reset buttons.
+ * API key management has been intentionally removed from the frontend for security.
+ * Keys must be set in the .env file (VITE_CLAUDE_API_KEY / VITE_GEMINI_API_KEY).
  */
-import { useState } from 'react'
-import { ReceiptText, RefreshCw, KeyRound, History } from 'lucide-react'
-import { hasApiKey } from '../services/aiReceiptParser.js'
-import ApiKeyModal from './ApiKeyModal.jsx'
+import { History, ReceiptText, RefreshCw } from 'lucide-react'
 
 export default function Header({ onReset, onShowHistory }) {
-  const [showKeyModal, setShowKeyModal] = useState(false)
-  const isConfigured = hasApiKey()
-
   return (
-    <>
-      {showKeyModal && (
-        <ApiKeyModal
-          onSave={() => setShowKeyModal(false)}
-          onClose={() => setShowKeyModal(false)}
-        />
-      )}
-      <header
+    <header
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        background: 'rgba(10,11,15,0.75)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+      }}
+    >
+      <div
+        className="content-wrapper"
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          background: 'rgba(10,11,15,0.75)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: 60,
         }}
       >
-        <div
-          className="content-wrapper"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.9rem 1.5rem',
-          }}
-        >
-          {/* Logo + name */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: '0.625rem',
-                background: 'linear-gradient(135deg, #6c63ff 0%, #38bdf8 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: '0 0 16px rgba(108,99,255,0.45)',
-              }}
-            >
-              <ReceiptText size={18} color="#fff" strokeWidth={2.2} />
-            </div>
-            <div>
-              <span
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontWeight: 700,
-                  fontSize: '1.05rem',
-                  background: 'linear-gradient(135deg, #6c63ff, #a78bfa, #38bdf8)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  lineHeight: 1,
-                }}
-              >
-                Smart Bill Splitter
-              </span>
-              <p style={{ fontSize: '0.68rem', color: '#4b5563', marginTop: 2 }}>
-                AI-Powered · Instant · Accurate
-              </p>
-            </div>
+        {/* Logo + wordmark */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', userSelect: 'none' }}>
+          <div
+            style={{
+              width: 34, height: 34, borderRadius: '0.625rem', flexShrink: 0,
+              background: 'linear-gradient(135deg, #6c63ff 0%, #38bdf8 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 16px rgba(108,99,255,0.45)',
+            }}
+          >
+            <ReceiptText size={18} color="#fff" strokeWidth={2.2} />
           </div>
-
-          {/* Header actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <button
-              id="header-api-key-btn"
-              className="btn btn-ghost"
-              onClick={() => setShowKeyModal(true)}
-              title="Configure AI API Key"
-              style={{
-                padding: '0.45rem 0.8rem',
-                fontSize: '0.78rem',
-                gap: '0.35rem',
-                border: isConfigured ? '1px solid rgba(34,211,168,0.3)' : undefined,
-                color: isConfigured ? '#22d3a8' : undefined,
-              }}
-            >
-              <KeyRound size={13} color={isConfigured ? '#22d3a8' : '#a78bfa'} />
-              <span>{isConfigured ? 'API Key Set ✓' : 'Set API Key'}</span>
-            </button>
-
-            <button
-              id="header-history-btn"
-              className="btn btn-ghost"
-              onClick={onShowHistory}
-              title="View split history"
-              style={{ padding: '0.45rem 0.8rem', fontSize: '0.78rem', gap: '0.35rem' }}
-            >
-              <History size={13} color="#a78bfa" />
-              History
-            </button>
-
-            <button
-              className="btn btn-ghost"
-              onClick={onReset}
-              title="Start over"
-              style={{ padding: '0.45rem 0.8rem', fontSize: '0.78rem' }}
-            >
-              <RefreshCw size={13} strokeWidth={2.2} />
-              New Split
-            </button>
+          <div>
+            <p style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontWeight: 700, fontSize: '1rem',
+              color: '#e2e8f0', lineHeight: 1.1,
+            }}>
+              Smart Bill Splitter
+            </p>
+            <p style={{ fontSize: '0.65rem', color: '#4b5563', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              AI-Powered
+            </p>
           </div>
         </div>
-      </header>
-    </>
+
+        {/* Actions */}
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            id="header-history-btn"
+            className="btn btn-ghost"
+            onClick={onShowHistory}
+            title="View split history"
+            style={{ padding: '0.45rem 0.8rem', fontSize: '0.78rem', gap: '0.35rem' }}
+          >
+            <History size={13} color="#a78bfa" />
+            <span>History</span>
+          </button>
+
+          <button
+            id="header-new-split-btn"
+            className="btn btn-ghost"
+            onClick={onReset}
+            title="Start a new split"
+            style={{ padding: '0.45rem 0.8rem', fontSize: '0.78rem', gap: '0.35rem' }}
+          >
+            <RefreshCw size={13} strokeWidth={2.2} />
+            <span>New Split</span>
+          </button>
+        </div>
+      </div>
+    </header>
   )
 }

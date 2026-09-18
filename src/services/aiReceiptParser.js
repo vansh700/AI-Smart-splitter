@@ -245,30 +245,23 @@ export function normalizeReceiptData(raw) {
   }
 }
 
-// ─── API key storage ──────────────────────────────────────────────
-
-const STORAGE_KEY = 'sbs_ai_api_key'
-
-export function saveApiKey(key) {
-  sessionStorage.setItem(STORAGE_KEY, key)
-  localStorage.setItem(STORAGE_KEY, key)
-}
+// ─── API key — environment only ───────────────────────────────────
+// Keys are read exclusively from import.meta.env (your .env file).
+// They are NEVER stored in localStorage, sessionStorage, or cookies.
 
 export function loadApiKey() {
   return (
-    sessionStorage.getItem(STORAGE_KEY) ||
-    localStorage.getItem(STORAGE_KEY) ||
-    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) ||
-    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_CLAUDE_API_KEY) ||
+    import.meta.env?.VITE_CLAUDE_API_KEY ||
+    import.meta.env?.VITE_GEMINI_API_KEY ||
     ''
   )
-}
-
-export function clearApiKey() {
-  sessionStorage.removeItem(STORAGE_KEY)
-  localStorage.removeItem(STORAGE_KEY)
 }
 
 export function hasApiKey() {
   return Boolean(loadApiKey())
 }
+
+// These are kept as no-ops so existing call sites don't break,
+// but they intentionally do nothing — keys must come from .env only.
+export function saveApiKey()  {}
+export function clearApiKey() {}

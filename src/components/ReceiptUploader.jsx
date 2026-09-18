@@ -7,30 +7,30 @@
  *  - Drag-and-drop zone (JPG, PNG, PDF)
  *  - Click-to-browse file picker
  *  - 3 sample receipt quick-picks (works without API key)
- *  - Calls Gemini Vision API to extract structured data
+ *  - Calls AI Vision API to extract structured data
  *  - Shows loading spinner during extraction
  *  - Shows error with retry on failure
+ *  - If no API key is configured in .env, shows a clear info banner
+ *    (API key is NEVER entered or stored in the frontend)
  */
 import { useState, useRef, useCallback } from 'react'
 import {
-  Upload, ImagePlus, Sparkles, AlertCircle, Loader2,
-  ChevronRight, ScanLine, FileImage
+  Upload, ImagePlus, AlertCircle,
+  ChevronRight, ScanLine, FileImage, Info,
 } from 'lucide-react'
 import { SAMPLE_RECEIPTS } from '../data/sampleReceipts.js'
 import { parseReceipt, hasApiKey, loadApiKey } from '../services/aiReceiptParser.js'
-import ApiKeyModal from './ApiKeyModal.jsx'
 
 const ACCEPTED = '.jpg,.jpeg,.png,.pdf,.webp'
 
 export default function ReceiptUploader({ onExtracted }) {
-  const [dragging,    setDragging]    = useState(false)
-  const [loading,     setLoading]     = useState(false)
-  const [loadingMsg,  setLoadingMsg]  = useState('')
-  const [error,       setError]       = useState('')
-  const [showKeyModal, setShowKeyModal] = useState(false)
-  const [pendingFile, setPendingFile] = useState(null)   // file waiting for API key
+  const [dragging,   setDragging]   = useState(false)
+  const [loading,    setLoading]    = useState(false)
+  const [loadingMsg, setLoadingMsg] = useState('')
+  const [error,      setError]      = useState('')
 
   const fileInputRef = useRef(null)
+  const keyConfigured = hasApiKey()
 
   // ── File handling ──────────────────────────────────────────────
 
@@ -38,7 +38,6 @@ export default function ReceiptUploader({ onExtracted }) {
     setError('')
     setLoading(true)
     setLoadingMsg('Reading receipt image…')
-
     try {
       setLoadingMsg('Analyzing with AI Vision…')
       const receipt = await parseReceipt(file, apiKey)
@@ -63,14 +62,12 @@ export default function ReceiptUploader({ onExtracted }) {
       setError('File is too large. Please use an image under 10MB.')
       return
     }
-
     const key = loadApiKey()
     if (!key) {
-      setPendingFile(file)
-      setShowKeyModal(true)
-    } else {
-      processFile(file, key)
+      setError('No AI API key found. Add VITE_CLAUDE_API_KEY or VITE_GEMINI_API_KEY to your .env file and restart the dev server.')
+      return
     }
+    processFile(file, key)
   }, [processFile])
 
   // ── Drag & Drop ────────────────────────────────────────────────
@@ -80,37 +77,44 @@ export default function ReceiptUploader({ onExtracted }) {
   const onDrop      = (e) => {
     e.preventDefault()
     setDragging(false)
-    const file = e.dataTransfer.files[0]
-    handleFile(file)
+    handleFile(e.dataTransfer.files[0])
   }
 
   // ── Sample receipts ────────────────────────────────────────────
 
   const handleSample = (sample) => {
     setError('')
-    const receipt = sample.make()
-    onExtracted(receipt)
-  }
-
-  // ── API key saved ──────────────────────────────────────────────
-
-  const handleKeySaved = (key) => {
-    setShowKeyModal(false)
-    if (pendingFile) {
-      setPendingFile(null)
-      processFile(pendingFile, key)
-    }
+    onExtracted(sample.make())
   }
 
   // ── Render ─────────────────────────────────────────────────────
 
   return (
     <div className="fade-in">
-      {showKeyModal && (
-        <ApiKeyModal
-          onSave={handleKeySaved}
-          onClose={() => { setShowKeyModal(false); setPendingFile(null) }}
-        />
+
+      {/* No API key banner */}
+      {!keyConfigured && (
+        <div
+          className="slide-up"
+          style={{
+            display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
+            background: 'rgba(56,189,248,0.07)',
+            border: '1px solid rgba(56,189,248,0.2)',
+            borderRadius: '0.875rem',
+            padding: '1rem 1.125rem',
+            marginBottom: '1.25rem',
+          }}
+        >
+          <Info size={16} color="#38bdf8" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <p style={{ fontWeight: 600, fontSize: '0.875rem', color: '#7dd3fc', marginBottom: '0.25rem' }}>
+              AI extraction not configured
+            </p>
+            <p style={{ fontSize: '0.8rem', color: '#4b5563', lineHeight: 1.6 }}>
+              Add <code style={{ background: 'rgba(255,255,255,0.07)', padding: '0 0.3rem', borderRadius: '0.25rem', fontSize: '0.78rem', color: '#a78bfa' }}>VITE_CLAUDE_API_KEY</code> or <code style={{ background: 'rgba(255,255,255,0.07)', padding: '0 0.3rem', borderRadius: '0.25rem', fontSize: '0.78rem', color: '#a78bfa' }}>VITE_GEMINI_API_KEY</code> to your <code style={{ background: 'rgba(255,255,255,0.07)', padding: '0 0.3rem', borderRadius: '0.25rem', fontSize: '0.78rem', color: '#a78bfa' }}>.env</code> file and restart the dev server. Until then, use the sample receipts below.
+            </p>
+          </div>
+        </div>
       )}
 
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
@@ -145,12 +149,10 @@ export default function ReceiptUploader({ onExtracted }) {
             /* Loading state */
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
               <div style={{ position: 'relative', width: 72, height: 72 }}>
-                {/* Outer ring */}
                 <div style={{
                   position: 'absolute', inset: 0, borderRadius: '50%',
                   border: '2px solid rgba(108,99,255,0.2)',
                 }} />
-                {/* Spinning scan line */}
                 <div style={{
                   position: 'absolute', inset: 0, borderRadius: '50%',
                   border: '2px solid transparent',
@@ -196,25 +198,15 @@ export default function ReceiptUploader({ onExtracted }) {
                 <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>JPG, PNG, PDF, WebP · Max 10MB</span>
               </p>
 
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button
-                  id="browse-file-btn"
-                  className="btn btn-primary"
-                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
-                  style={{ fontSize: '0.9rem' }}
-                >
-                  <ImagePlus size={16} />
-                  Choose File
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  onClick={(e) => { e.stopPropagation(); setPendingFile(null); setShowKeyModal(true) }}
-                  style={{ fontSize: '0.9rem' }}
-                >
-                  <Sparkles size={15} />
-                  {hasApiKey() ? 'Change API Key' : 'Set API Key'}
-                </button>
-              </div>
+              <button
+                id="browse-file-btn"
+                className="btn btn-primary"
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
+                style={{ fontSize: '0.9rem' }}
+              >
+                <ImagePlus size={16} />
+                Choose File
+              </button>
             </>
           )}
         </div>

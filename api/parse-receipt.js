@@ -126,41 +126,57 @@ Rules:
         parsed = JSON.parse(match[0])
       }
     } else {
-      // ── Google Gemini Vision API ──
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  inline_data: {
-                    mime_type: mimeType,
-                    data: imageBase64,
-                  },
-                },
-                { text: EXTRACTION_PROMPT },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            responseMimeType: 'application/json',
-          },
-        }),
-      })
+      // ── Google Gemini Vision API (with automatic fallback) ──
+      const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro']
+      let lastError = null
+      let successData = null
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}))
-        return res.status(response.status).json({
-          error: err?.error?.message || `Gemini API error: ${response.status} ${response.statusText}`,
+      for (const model of models) {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      inline_data: {
+                        mime_type: mimeType,
+                        data: imageBase64,
+                      },
+                    },
+                    { text: EXTRACTION_PROMPT },
+                  ],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.1,
+                responseMimeType: 'application/json',
+              },
+            }),
+          })
+
+          if (response.ok) {
+            successData = await response.json()
+            break
+          } else {
+            const err = await response.json().catch(() => ({}))
+            lastError = err?.error?.message || `Gemini API error (${model}): ${response.status} ${response.statusText}`
+          }
+        } catch (e) {
+          lastError = e.message
+        }
+      }
+
+      if (!successData) {
+        return res.status(500).json({
+          error: lastError || 'All Gemini models failed to process the receipt.',
         })
       }
 
-      const data = await response.json()
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+      const text = successData?.candidates?.[0]?.content?.parts?.[0]?.text
       if (!text) {
         return res.status(500).json({ error: 'No content returned from Gemini API' })
       }

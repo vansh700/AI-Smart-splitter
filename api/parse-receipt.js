@@ -63,13 +63,20 @@ Rules:
     if (apiKey.startsWith('sk-ant-')) {
       // ── Claude Vision API (Anthropic Messages) ──
       const endpoint = 'https://api.anthropic.com/v1/messages'
+      // Build headers — include workspace ID if available (required for non-workspace-scoped keys)
+      const claudeHeaders = {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      }
+      const workspaceId = (process.env.ANTHROPIC_WORKSPACE_ID || '').trim()
+      if (workspaceId) {
+        claudeHeaders['anthropic-workspace-id'] = workspaceId
+      }
+
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
+        headers: claudeHeaders,
         body: JSON.stringify({
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 1500,

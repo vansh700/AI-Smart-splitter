@@ -126,13 +126,34 @@ Rules:
         parsed = JSON.parse(match[0])
       }
     } else {
-      // ── Google Gemini Vision API (with automatic fallback) ──
-      const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro']
+      // ── Google Gemini Vision API (Dynamic Model Discovery + Fallback) ──
+      let models = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash-exp']
+      
+      try {
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`)
+        if (listRes.ok) {
+          const listData = await listRes.json()
+          const supported = (listData?.models || [])
+            .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+            .map(m => m.name.replace(/^models\//, ''))
+          
+          if (supported.length > 0) {
+            const flashModels = supported.filter(m => m.includes('flash'))
+            const proModels = supported.filter(m => m.includes('pro'))
+            const remaining = supported.filter(m => !m.includes('flash') && !m.includes('pro'))
+            models = [...flashModels, ...proModels, ...remaining]
+          }
+        }
+      } catch (err) {
+        console.warn('Could not query ListModels, falling back to predefined list:', err)
+      }
+
       let lastError = null
       let successData = null
 
       for (const model of models) {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+        const modelPath = model.startsWith('models/') ? model : `models/${model}`
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`
         try {
           const response = await fetch(endpoint, {
             method: 'POST',
